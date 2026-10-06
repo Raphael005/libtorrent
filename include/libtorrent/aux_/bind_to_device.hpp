@@ -52,6 +52,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <rpcdce.h>
 #include <array>
 #include <cstring>
+
+// wincrypt.h, pulled in transitively above, #defines X509_NAME to a CryptoAPI
+// encoding-type constant, which clobbers OpenSSL's X509_NAME type for any
+// translation unit that includes both this header and <openssl/x509.h>.
+#undef X509_NAME
 #endif
 
 namespace libtorrent { namespace aux {
