@@ -1,5 +1,6 @@
 name: CIFuzz
-on: [pull_request]
+# TEMPORARY: disabled (workflow_dispatch only) while debugging windows.yml CI
+on: workflow_dispatch
 jobs:
   Fuzzing:
     runs-on: ubuntu-latest

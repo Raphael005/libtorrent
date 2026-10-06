@@ -220,4 +220,30 @@ jobs:
           export PATH="$BOOST_ROOT:$PATH"
           export PYTHON_INTERPRETER=python
           cd test
-          b2 toolset=gcc crypto=openssl-shared link=static asserts=on release target-os=windows -l400 warnings=all warnings-as-errors=on ${{ matrix.config }} cxxflags=-Wno-error=array-bounds cxxflags=-Wno-error=stringop-overflow cxxflags=-Wno-error=clobbered deterministic-tests testing.execute=off --abbreviate-paths
+          b2 toolset=gcc crypto=openssl-shared link=static asserts=on release target-os=windows -l400 warnings=all warnings-as-errors=on ${{ matrix.config }} cxxflags=-Wno-error=array-bounds cxxflags=-Wno-error=stringop-overflow cxxflags=-Wno-error=clobbered cxxflags=-save-temps=obj deterministic-tests testing.execute=off --abbreviate-paths
+
+      # TEMPORARY: find the exact include chain that pulls wincrypt.h into
+      # torrent.cpp. Remove once confirmed.
+      - name: diagnose wincrypt.h include chain
+        if: always()
+        shell: msys2 {0}
+        run: |
+          f=$(find . -iname 'torrent.ii' -o -iname 'torrent.cpp.ii' | head -1)
+          echo "preprocessed file: $f"
+          if [ -n "$f" ]; then
+            echo "--- is WIN32_LEAN_AND_MEAN actually suppressing the fat windows.h? ---"
+            echo "(if these are non-empty, LEAN_AND_MEAN is NOT active for this TU)"
+            grep -n 'dde\.h"' "$f" | head -3
+            grep -n 'commdlg\.h"' "$f" | head -3
+            grep -n 'mmsystem\.h"' "$f" | head -3
+            echo "--- first wincrypt.h entry marker and the 80 lines before it ---"
+            ln=$(grep -n 'wincrypt\.h" 1' "$f" | head -1 | cut -d: -f1)
+            echo "wincrypt.h first entered at line $ln"
+            if [ -n "$ln" ]; then
+              start=$((ln>80 ? ln-80 : 1))
+              sed -n "${start},${ln}p" "$f" | grep -n '^# [0-9]'
+            fi
+          else
+            echo "no preprocessed .ii file found"
+            find . -iname '*.ii' -path '*torrent*'
+          fi

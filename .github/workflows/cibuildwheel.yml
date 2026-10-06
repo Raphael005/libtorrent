@@ -17,6 +17,7 @@ name: cibuildwheel
 # - abi3: Not supported by boost-python (or pybind11) or cibuildwheel as of
 #   writing
 
+# TEMPORARY: pull_request trigger disabled while debugging windows.yml CI
 on:
   workflow_dispatch:
     inputs:
@@ -24,13 +25,6 @@ on:
         description: Write 'PUBLISH' to publish to pypi. BEWARE! ARTIFACTS ARE IMMUTABLE AND CANNOT BE REPLACED ONCE PUBLISHED!
       publish_test:
         description: Write 'PUBLISH_TEST' to publish to test-pypi. BEWARE! ARTIFACTS ARE IMMUTABLE AND CANNOT BE REPLACED ONCE PUBLISHED!
-
-  pull_request:
-    paths:
-      - .github/workflows/cibuildwheel.yml
-      - bindings/python/__init__.pyi
-      - tools/cibuildwheel/**
-      - pyproject.toml
 
 concurrency:
    group: ${{ github.ref }}-${{ github.workflow }}-${{ github.event_name }}
